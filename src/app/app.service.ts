@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { RequestFilterData } from './app.model';
+import { map } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppService {
-  constructor(private http: HttpClient) { }
-
-  getData = () => this.http.get<any>('assets/data.json');
+  httpClient = inject(HttpClient);
+  getData = (requestFilterData: RequestFilterData) =>
+    this.httpClient.get<any>('assets/data.json').pipe(map(res => res.data.slice(requestFilterData.first, (requestFilterData.first + requestFilterData.rows))));
 }

@@ -1,69 +1,78 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { LazyLoadEvent, FilterMetadata } from 'primeng/api';
-import { TableModule, TableLazyLoadEvent  } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent, Table } from 'primeng/table';
 
-import { Customer } from './app.model';
+import { Customer, RequestFilterData, SortOrder } from './app.model';
 import { AppService } from './app.service';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputTextModule } from 'primeng/inputtext';
+import { PaginatorModule } from 'primeng/paginator';
 
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, TableModule],
+  imports: [CommonModule, FormsModule, TableModule, MultiSelectModule, ButtonModule, InputIconModule, IconFieldModule, InputTextModule, PaginatorModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
   title = 'angular-primeng-table';
-  datasource: Customer[] = [];
   customers: Customer[] = [];
   totalRecords: number = 0;
   cols: any[] = [];
   loading: boolean = false;
+  selectAll: boolean = false;
+  selectedCustomers!: Customer[];
 
-  constructor(private appService: AppService) { }
+  representatives!: [
+    { name: 'Amy Elsner', image: 'amyelsner.png' },
+    { name: 'Anna Fali', image: 'annafali.png' },
+    { name: 'Asiya Javayant', image: 'asiyajavayant.png' },
+    { name: 'Bernardo Dominic', image: 'bernardodominic.png' },
+    { name: 'Elwin Sharvill', image: 'elwinsharvill.png' },
+    { name: 'Ioni Bowcher', image: 'ionibowcher.png' },
+    { name: 'Ivan Magalhaes', image: 'ivanmagalhaes.png' },
+    { name: 'Onyama Limba', image: 'onyamalimba.png' },
+    { name: 'Stephen Shaw', image: 'stephenshaw.png' },
+    { name: 'Xuxue Feng', image: 'xuxuefeng.png' }
+];
+
+  constructor(private readonly appService: AppService) { }
 
   ngOnInit() {
-    this.appService.getData().subscribe(res => {
-      this.datasource = res.data;
-      this.totalRecords = res.data.length;
-    });
-
-    this.loading = true;
   }
 
   loadData(event: TableLazyLoadEvent) {
-    console.log({event});
-
-    const lazyLoadEvent: LazyLoadEvent = {
-      first: event.first ?? 0,
-      rows: event.rows ?? 0, // convert null or undefined to 0
-      sortField: event.sortField === null ? undefined : event.sortField?.toString(),
-      sortOrder: event.sortOrder === null ? undefined : event.sortOrder,
-      filters: event.filters as { [s: string]: FilterMetadata; },
-      multiSortMeta: event.multiSortMeta ?? undefined,
-  };
-
-  console.log({lazyLoadEvent});
-
     this.loading = true;
 
-    //in a real application, make a remote request to load data using state metadata from event
-    //event.first = First row offset
-    //event.rows = Number of rows per page
-    //event.sortField = Field name to sort with
-    //event.sortOrder = Sort order as number, 1 for asc and -1 for dec
-    //filters: FilterMetadata object having field as key and filter value, filter matchMode as value
+    const requestFilterData: RequestFilterData = {
+      first: event.first ?? 1,
+      rows: event.rows ?? 10,
+      sortField: event.sortField,
+      sortOrder: event.sortOrder && event.sortOrder === 1 ? SortOrder.ASC : SortOrder.DESC,
+      globalFilter: event.globalFilter,
+      multiSort: event.multiSortMeta,
+      last: event.last,
+    };
 
-    //imitate db connection over a network
+    console.log(requestFilterData);
+
     setTimeout(() => {
-      if (this.datasource) {
-        this.customers = this.datasource.slice(lazyLoadEvent.first, (lazyLoadEvent.first as number + (lazyLoadEvent.rows as number) || 0 ));
+      this.appService.getData(requestFilterData).subscribe(rows => {
+        this.customers = rows;
+        this.totalRecords = rows.length;
         this.loading = false;
-        (lazyLoadEvent as any).forceUpdate();
-      }
+        //(event as any).forceUpdate();
+      });
     }, 1000);
   }
+
+clear(table: Table) {
+    table.clear();
+}
 }

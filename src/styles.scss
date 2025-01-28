@@ -14,3 +14,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: light-dark(var(--p-surface-0), var(--p-surface-950));
 }
+
+.card {
+  background: var(--surface-card);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
